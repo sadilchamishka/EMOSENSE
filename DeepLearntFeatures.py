@@ -9,10 +9,11 @@ model.load_state_dict(cp['model'])
 model.eval()
 
 def featureExtraction(file):
-  y, sr = librosa.load(file+j+'.wav',sr=16000)  # y -> (t)
+  y, sr = librosa.load(file,sr=16000)  # y -> (t)
   b = torch.from_numpy(y).unsqueeze(0)    # b -> (1, t)
   z = model.feature_extractor(b)          # z -> (1, 512, t)
   z = model.feature_aggregator(z)         # z -> (1, 512, t)
+
   return z
 
 def featureMean(file):
@@ -21,12 +22,15 @@ def featureMean(file):
   return z.tolist()
 
 def feature20BinMeans(file):
-  z = featureExtraction(file)
-  z = torch.mean(z,2).squeeze(0)          # z -> (1, 512) -> (512)
+  z = featureExtraction(file) 
+  #z = torch.mean(z,2).squeeze(0)          # z -> (1, 512) -> (512)
+  z = z.squeeze(0)
 
   start = 0
   end = 0
   a = []
+
+
   hop = int(z.size()[1]/20)
 
   if hop==0:
