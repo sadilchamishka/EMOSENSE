@@ -304,16 +304,17 @@ def train_or_eval_model(model, features, speakers, batch_size=1, num_workers=0, 
 
 	return preds
 
-def predictConversationOffline(waveFileDictionary, speakers):
-	features = {}
-	for key in waveFileDictionary:
-		list1 = []
+def predictConversationOffline(utterences, speakers):
+	feature = {}
+	speaker = {}
+	list1 = []
 
-		for utterence in waveFileDictionary[key]:
-			list1.append(featureMean(utterence))
-		features[key] = list1
+	for _,file in utterences.items():
+		file.save('utterence.wav')
+		list1.append(featureMean('utterence.wav'))
+	feature['conv'] = list1
 
-	predictions = train_or_eval_model(model,features,speakers)
+	predictions = train_or_eval_model(model,feature,speaker)
 	return predictions
 
 D_m = 512

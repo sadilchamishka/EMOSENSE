@@ -22,9 +22,12 @@ def utterenceEmotionPrediction():
 
 @app.route("/conversation/offline",methods = ['POST'])
 def conversationEmotionPredictionOffline():
-		#file = request.files['audio']
-		prediction = predictConversationOffline("test")
-		return ""
+		files = request.files['audio']
+		print(files)
+		data = request.json
+		prediction = predictConversationOffline(files,data['speakers'])
+		print(prediction)
+		return "success"
 
 if __name__ == "__main__":
 		app.run(host='0.0.0.0')
