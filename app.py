@@ -1,7 +1,7 @@
 from flask import Flask, request
 from UtterenceModel import predictUtterence
 from DeepLearntFeatures import featureMean,feature20BinMeans
-from ConversationModel import predictConversationOffline
+from ConversationModel import predictConversationOffline, predictConversationOnline
 
 app = Flask(__name__)
 
@@ -22,10 +22,17 @@ def utterenceEmotionPrediction():
 
 @app.route("/conversation/offline",methods = ['POST'])
 def conversationEmotionPredictionOffline():
-		files = request.files['audio']
-		print(files)
-		data = request.json
-		prediction = predictConversationOffline(files,data['speakers'])
+		files = request.files
+		data = request.args['speakers']	
+		prediction = predictConversationOffline(files,data)
+		print(prediction)
+		return "success"
+
+@app.route("/conversation/online",methods = ['POST'])
+def conversationEmotionPredictionOnline():
+		files = request.files
+		data = request.args['speakers']	
+		prediction = predictConversationOnline(files,data)
 		print(prediction)
 		return "success"
 

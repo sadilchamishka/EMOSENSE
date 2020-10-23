@@ -5,6 +5,10 @@ from torch.nn.utils.rnn import pad_sequence
 import pandas as pd
 from DeepLearntFeatures import featureMean
 from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
+import numpy as np
+import json
+import os
 
 class SimpleAttention(nn.Module):
 
@@ -271,7 +275,7 @@ class Conversation(Dataset):
 
 	def __getitem__(self, index):
 		vid = self.keys[index]
-		return torch.FloatTensor(self.videoAudio[vid]), torch.FloatTensor([[1,0] if x=='M' else [0,1] for x in self.videoSpeakers[vid]]), torch.FloatTensor([1]*len(self.speakers[vid]))
+		return torch.FloatTensor(self.videoAudio[vid]), torch.FloatTensor([[1,0] if x=='M' else [0,1] for x in self.videoSpeakers[vid]]), torch.FloatTensor([1]*len(self.videoSpeakers[vid]))
 
 	def __len__(self):
 		return self.len
@@ -308,14 +312,51 @@ def predictConversationOffline(utterences, speakers):
 	feature = {}
 	speaker = {}
 	list1 = []
+	speakers = speakers.split(",")
 
 	for _,file in utterences.items():
 		file.save('utterence.wav')
 		list1.append(featureMean('utterence.wav'))
+
 	feature['conv'] = list1
+	speaker['conv'] = speakers
 
 	predictions = train_or_eval_model(model,feature,speaker)
 	return predictions
+
+def predictConversationOnline(utterences, speakers):
+	feature = {}
+	speaker = {}
+	list1 = []
+
+	for _,file in utterences.items():
+		file.save('utterence.wav')
+		list1.append(featureMean('utterence.wav'))
+
+
+	if not os.path.exists("data.json"): # first utterence of the conv
+		oldData = {"features":[],"speakers": []}
+	else:
+		with open('data.json', 'r') as infile:
+			oldData = json.load(infile)
+	# update old data
+	oldData["features"].append(list1)
+	oldData["speakers"].append(speakers)
+
+	# update data.json file
+	with open('data.json', 'w') as outfile:	
+		json.dump(oldData, outfile)
+
+    #send utterence/speaker sequence up to now
+
+	feature['conv'] = oldData["features"]
+
+	speaker['conv'] = oldData["speakers"]
+
+	predictions = train_or_eval_model(model,feature,speaker)
+	#only return the last prediction
+	return predictions
+
 
 D_m = 512
 D_g = 150
