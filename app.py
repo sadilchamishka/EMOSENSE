@@ -1,9 +1,11 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from UtterenceModel import predictUtterence
 from DeepLearntFeatures import featureMean,feature20BinMeans
 from ConversationModel import predictConversationOffline, predictConversationOnline
+from flask_cors import CORS
 
 app = Flask(__name__)
+cors = CORS(app)
 
 utterence_folder = './utterences/'
 
@@ -17,8 +19,7 @@ def utterenceEmotionPrediction():
 		utterence_path = utterence_folder+'utt.wav'
 		file.save(utterence_path)
 		prediction = predictUtterence(utterence_path)
-		print(prediction)
-		return str(prediction)
+		return jsonify({'prediction': prediction[0]})
 
 @app.route("/conversation/offline",methods = ['POST'])
 def conversationEmotionPredictionOffline():

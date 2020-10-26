@@ -53,7 +53,5 @@ def predictUtterence(file):
 		feature = torch.FloatTensor(feature)
 		feature = feature.unsqueeze(0)
 		log_prob = model(feature)
-		pred = torch.argmax(log_prob,1)
-		pred = pred.tolist()
-		return pred[0]
+		return torch.exp(log_prob).tolist()
 
