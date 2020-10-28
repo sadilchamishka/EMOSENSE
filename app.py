@@ -25,9 +25,24 @@ def utterenceEmotionPrediction():
 def conversationEmotionPredictionOffline():
 		files = request.files
 		data = request.args['speakers']	
-		prediction = predictConversationOffline(files,data)
-		print(prediction)
-		return "success"
+		prediction,attention_f,attention_b = predictConversationOffline(files,data)
+		
+		emotion_predictions = []
+		i=0
+		for p in prediction.tolist():
+			temp = {}
+			temp['timestep'] = i
+			temp['Happy'] = p[0]
+			temp['Sad'] = p[1]
+			temp['Neutral'] = p[2]
+			temp['Angry'] = p[3]
+			temp['Excited'] = p[4]
+			temp['Frustrated'] = p[5]
+			emotion_predictions.append(temp)
+			i+=1
+
+		#return jsonify({'prediction': prediction.tolist(), 'attentionf':attention_f, 'attentionb':attention_b})
+		return jsonify({'prediction':emotion_predictions}) 
 
 @app.route("/conversation/online",methods = ['POST'])
 def conversationEmotionPredictionOnline():

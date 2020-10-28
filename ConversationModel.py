@@ -286,6 +286,8 @@ class Conversation(Dataset):
 
 def train_or_eval_model(model, features, speakers, batch_size=1, num_workers=0, pin_memory=False):
 	preds = []
+	alpha_f = []
+	alpha_b = []
 
 	testset = Conversation(features,speakers)
 	test_loader = DataLoader(testset,
@@ -298,15 +300,18 @@ def train_or_eval_model(model, features, speakers, batch_size=1, num_workers=0, 
 		acouf, qmask, umask = data
 		log_prob, alpha, alpha_f, alpha_b = model(acouf, qmask,umask) # seq_len, batch, n_classes
 		lp_ = log_prob.transpose(0,1).contiguous().view(-1,log_prob.size()[2]) # batch*seq_len, n_classes
-		pred_ = torch.argmax(lp_,1) # batch*seq_len
+		pred_ = torch.exp(lp_)
+		#pred_ = torch.argmax(lp_,1) # batch*seq_len
 		preds.append(pred_.data.cpu().numpy())
+		alpha_f.append(alpha[0].tolist())
+		alpha_b.append(alpha[1].tolist())
 
 	if preds!=[]:
 		preds  = np.concatenate(preds)
 	else:
-		return float('nan')
+		return float('nan'),float('nan'), float('nan')
 
-	return preds
+	return preds, alpha_f, alpha_b
 
 def predictConversationOffline(utterences, speakers):
 	feature = {}
